@@ -1,42 +1,115 @@
-# GitHub Trending Scraper and Analyzer
+# GitHub Trending Scraper & Analyzer
 
-This FastAPI application fetches trending repositories from GitHub for a specified programming language and analyzes the relationships between them based on shared topics. The output is a JSON format suitable for graph visualization.
+A **FastAPI application** to fetch and analyze trending GitHub repositories based on a specified programming language. It scrapes repository details, identifies relationships based on shared topics, and outputs a structured JSON format ideal for graph-based visualizations.
 
-## Setup
+## Developed By
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <your_repository_url>
-    cd github-trending-scraper
-    ```
-2.  **Create a virtual environment (recommended):**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Linux/macOS
-    # venv\Scripts\activate   # On Windows
-    ```
-3.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+**Mohammad Kattubadi**  
+Email: miraclemohammad786@gmail.com  
+GitHub: [kattubadimohammad](https://github.com/kattubadimohammad)  
+Location: Bengaluru, Karnataka
 
-## Running the Application
+---
 
-1.  Navigate to the project root directory.
-2.  Run the FastAPI application using Uvicorn:
-    ```bash
-    uvicorn app.main:app --reload
-    ```
+## Features
 
-    This will start the server, usually at `http://127.0.0.1:8000`.
+- Fetches GitHub trending repositories by language
+- Extracts metadata like stars, forks, and topics
+- Builds a relationship graph using shared topics
+- Returns structured data as JSON
+- Modular design with unit tests
+- Dockerized for ease of deployment
 
-## API Endpoint
+---
 
-`/analyze/github/trending/{language}`
+## Tech Stack
 
-* **Method:** `GET`
-* **Path Parameter:** `{language}` - The programming language for which to fetch trending repositories (e.g., `python`, `javascript`, `java`).
+- Python 3.10+
+- FastAPI
+- Requests
+- Uvicorn
+- Pytest
+- Docker
 
-## Example Usage
+---
 
-To analyze trending Python repositories, you can access the following URL in your browser or using a tool like `curl`:
+## Setup Instructions
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/kattubadimohammad/github-trending-scraper.git
+cd github-trending-scraper
+
+Create a Virtual Environment
+
+python -m venv venv
+source venv/bin/activate  # On Linux/macOS
+# venv\Scripts\activate    # On Windows
+
+Install Dependencies
+
+pip install -r requirements.txt
+
+
+---
+
+Running the Application
+
+Start the FastAPI server using Uvicorn:
+
+uvicorn app.main:app --reload
+
+Visit in your browser or via API tools at:
+http://127.0.0.1:8000/analyze/github/trending/{language}
+
+Example:
+
+http://127.0.0.1:8000/analyze/github/trending/python
+
+
+---
+
+Project Structure
+
+github-trending-scraper/
+├── app/
+│   ├── main.py
+│   ├── scraper.py
+│   ├── models.py
+│   ├── cache.py
+│   └── utils.py
+├── tests/
+│   ├── test_main.py
+│   ├── test_scraper.py
+│   └── test_utils.py
+├── requirements.txt
+├── Dockerfile
+└── README.md
+
+
+---
+
+Run Tests
+
+pytest tests/
+
+
+---
+
+Run via Docker
+
+docker build -t github-trending-scraper .
+docker run -p 8000:8000 github-trending-scraper
+
+
+---
+
+License
+
+MIT License
+
+---
+
+Let me know if you'd like to include deployment links, a sample API response, or even a video demo link.
+

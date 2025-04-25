@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+1.  Add a route for the root path ("/"):Modify your app/main.py file to include a route for the root path ("/").  Here's the modified code:from fastapi import FastAPI, HTTPException
 from app import models, scraper, utils, cache
 
 # --- FastAPI Application ---
@@ -7,6 +7,10 @@ app = FastAPI()
 @app.get("/health")
 async def health():
     return {"status": "OK"}
+
+@app.get("/")  # Add this route
+async def root():
+    return {"message": "Welcome to the GitHub Trending Analyzer API"}
 
 @app.get("/analyze/github/trending/{language}", response_model=models.GraphData)
 async def analyze_trending_repositories(language: str):
@@ -49,3 +53,4 @@ async def analyze_trending_repositories(language: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+

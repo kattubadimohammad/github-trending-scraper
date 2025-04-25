@@ -1,18 +1,42 @@
-# GitHub Trending Scraper
+# GitHub Trending Scraper and Analyzer
 
-A FastAPI application that fetches and analyzes trending GitHub repositories for a specified programming language. The application scrapes GitHub's trending page and provides a graph-like JSON output with repository details, such as description, stars, forks, and more.
+This FastAPI application fetches trending repositories from GitHub for a specified programming language and analyzes the relationships between them based on shared topics. The output is a JSON format suitable for graph visualization.
 
-## Features
+## Setup
 
-- Fetches and analyzes trending repositories from GitHub for a given programming language.
-- Provides a graph-like JSON output with repository details (id, description, stars, forks, language).
-- Computes edges based on shared topics and semantic similarity between repositories.
-- Caching mechanism to store results for faster responses.
-- Built using FastAPI, Pydantic, and BeautifulSoup.
+1.  **Clone the repository:**
+    ```bash
+    git clone <your_repository_url>
+    cd github-trending-scraper
+    ```
+2.  **Create a virtual environment (recommended):**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Linux/macOS
+    # venv\Scripts\activate   # On Windows
+    ```
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## Installation
+## Running the Application
 
-### 1. Clone the repository:
-```bash
-git clone https://github.com/kattubadimohammad/github-trending-scraper.git
-cd github-trending-scraper
+1.  Navigate to the project root directory.
+2.  Run the FastAPI application using Uvicorn:
+    ```bash
+    uvicorn app.main:app --reload
+    ```
+
+    This will start the server, usually at `http://127.0.0.1:8000`.
+
+## API Endpoint
+
+`/analyze/github/trending/{language}`
+
+* **Method:** `GET`
+* **Path Parameter:** `{language}` - The programming language for which to fetch trending repositories (e.g., `python`, `javascript`, `java`).
+
+## Example Usage
+
+To analyze trending Python repositories, you can access the following URL in your browser or using a tool like `curl`:

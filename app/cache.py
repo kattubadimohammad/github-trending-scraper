@@ -1,9 +1,8 @@
-CACHE = {}
+from cachetools import TTLCache
 
-def get_cache(key):
-    if key in CACHE and (time() - CACHE[key]["timestamp"]) < 600:  # Cache expiry time: 10 minutes
-        return CACHE[key]["data"]
-    return None
+# --- Configuration ---
+CACHE_TTL = 3600  # seconds (1 hour)
+_cache = TTLCache(maxsize=128, ttl=CACHE_TTL)
 
-def set_cache(key, data):
-    CACHE[key] = {"data": data, "timestamp": time()}
+def get_cache():
+    return _cache

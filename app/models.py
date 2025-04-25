@@ -1,18 +1,18 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
-class RepoNode(BaseModel):
+class RepositoryNode(BaseModel):
     id: str
-    description: str
-    stars: int
-    forks: int
-    language: str
+    description: Optional[str] = None
+    stars: Optional[int] = None
+    forks: Optional[int] = None
+    language: Optional[str] = None
 
-class RepoEdge(BaseModel):
+class Edge(BaseModel):
     source: str
     target: str
     weight: int
 
 class GraphData(BaseModel):
-    nodes: List[RepoNode]
-    edges: List[RepoEdge]
+    nodes: List[RepositoryNode]
+    edges: List[Edge]

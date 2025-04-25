@@ -1,4 +1,5 @@
 from cachetools import TTLCache
+import time  # Import the time module
 
 # --- Configuration ---
 CACHE_TTL = 3600  # seconds (1 hour)

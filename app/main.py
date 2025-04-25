@@ -15,30 +15,36 @@ async def analyze_trending_repositories(language: str):
     analyzes their relationships based on shared topics, and
     returns the data in a graph-like JSON format.
     """
-    cached_data = cache.get_cache().get(language)
-    if cached_data:
-        return cached_data
+    try:
+        cached_data = cache.get_cache().get(language)
+        if cached_data:
+            return cached_data
 
-    html_content = scraper.fetch_trending_page(language)
-    if not html_content:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch trending page for {language}")
+        html_content = scraper.fetch_trending_page(language)
+        if not html_content:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch trending page for {language}")
 
-    repositories_data = scraper.extract_repository_data(html_content)
-    nodes = [
-        models.RepositoryNode(
-            id=repo["id"],
-            description=repo.get("description"),
-            stars=repo.get("stars"),
-            forks=repo.get("forks"),
-            language=repo.get("language"),
-        )
-        for repo in repositories_data
-    ]
-    edges = utils.analyze_repository_relationships(repositories_data)
-    graph_data = models.GraphData(nodes=nodes, edges=edges)
+        repositories_data = scraper.extract_repository_data(html_content)
+        nodes = [
+            models.RepositoryNode(
+                id=repo["id"],
+                description=repo.get("description"),
+                stars=repo.get("stars"),
+                forks=repo.get("forks"),
+                language=repo.get("language"),
+            )
+            for repo in repositories_data
+        ]
+        edges = utils.analyze_repository_relationships(repositories_data)
+        graph_data = models.GraphData(nodes=nodes, edges=edges)
 
-    cache.get_cache()[language] = graph_data
-    return graph_data
+        cache.get_cache()[language] = graph_data
+        return graph_data
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        print(f"Error processing request for {language}: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 if __name__ == "__main__":
     import uvicorn

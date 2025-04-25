@@ -1,4 +1,4 @@
-1.  Add a route for the root path ("/"):Modify your app/main.py file to include a route for the root path ("/").  Here's the modified code:from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
 from app import models, scraper, utils, cache
 
 # --- FastAPI Application ---

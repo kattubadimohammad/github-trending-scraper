@@ -8,6 +8,16 @@ from typing import List
 
 app = FastAPI()
 
+# Root route (to avoid 404 error)
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the GitHub Trending Scraper API"}
+
+# Health check route
+@app.get("/healthz")
+def health_check():
+    return {"status": "healthy"}
+
 @app.get("/analyze/github/trending/{language}", response_model=GraphData)
 def analyze_trending(language: str):
     """

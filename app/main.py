@@ -4,6 +4,10 @@ from app import models, scraper, utils, cache
 # --- FastAPI Application ---
 app = FastAPI()
 
+@app.get("/health")
+async def health():
+    return {"status": "OK"}
+
 @app.get("/analyze/github/trending/{language}", response_model=models.GraphData)
 async def analyze_trending_repositories(language: str):
     """

@@ -1,76 +1,94 @@
+import requests
+from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException
-from app.scraper import fetch_trending_repos, compute_edges
-from app.models import GraphData
-from app.cache import get_cache, set_cache
-from app.utils import compute_semantic_similarity
-import logging  # Add logging for better debugging
-from time import time
-from typing import List
+from pydantic import BaseModel
+from typing import List, Dict
+import time
 
 app = FastAPI()
 
-# Set up logging configuration
-logging.basicConfig(level=logging.INFO)
+# Simple cache to store results for each language
+cache = {}
 
-# Root route (to avoid 404 error)
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the GitHub Trending Scraper API"}
+# Helper function to fetch trending repositories
+def fetch_trending_repositories(language: str):
+    url = f'https://github.com/trending/{language}'
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise HTTPException(status_code=500, detail="Failed to fetch trending repositories.")
+    
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    repos = []
+    for repo_item in soup.find_all('article', class_='Box-row'):
+        repo_name = repo_item.find('h1').get_text(strip=True)
+        description = repo_item.find('p', class_='col-9 color-text-secondary my-1 pr-4')
+        description = description.get_text(strip=True) if description else "No description"
+        stars = repo_item.find('a', class_='Link--primary')
+        stars = stars.get_text(strip=True).replace(',', '') if stars else '0'
+        forks = repo_item.find('a', class_='Link--secondary')
+        forks = forks.get_text(strip=True).replace(',', '') if forks else '0'
+        
+        # Additional logic to extract topics (if available)
+        repo_url = f'https://github.com{repo_item.find("a", class_="Link--primary")["href"]}'
+        repo_details = requests.get(repo_url)
+        repo_soup = BeautifulSoup(repo_details.content, 'html.parser')
+        topics = []
+        for topic in repo_soup.find_all('span', class_='topic-tag'):
+            topics.append(topic.get_text(strip=True))
+        
+        repos.append({
+            "name": repo_name,
+            "description": description,
+            "stars": int(stars),
+            "forks": int(forks),
+            "topics": topics
+        })
+    return repos
 
-# Health check route
-@app.get("/healthz")
-def health_check():
-    return {"status": "healthy"}
+# Helper function to perform similarity analysis
+def analyze_relationships(repos: List[Dict]):
+    edges = []
+    for i in range(len(repos)):
+        for j in range(i + 1, len(repos)):
+            common_topics = set(repos[i]['topics']).intersection(repos[j]['topics'])
+            if common_topics:
+                edges.append({
+                    "source": repos[i]['name'],
+                    "target": repos[j]['name'],
+                    "weight": len(common_topics)
+                })
+    return edges
 
-@app.get("/analyze/github/trending/{language}", response_model=GraphData)
+# Data model for the response
+class RepoNode(BaseModel):
+    id: str
+    description: str
+    stars: int
+    forks: int
+    language: str
+
+class GraphResponse(BaseModel):
+    nodes: List[RepoNode]
+    edges: List[Dict[str, str]]
+
+@app.get("/analyze/github/trending/{language}", response_model=GraphResponse)
 def analyze_trending(language: str):
-    """
-    API endpoint to analyze GitHub trending repositories for a given language.
-    It scrapes the GitHub trending page and returns a graph-like JSON format.
-    """
-    # Construct the cache key based on the language
-    key = f"trending_{language}"
+    # Check cache first
+    if language in cache and time.time() - cache[language]['timestamp'] < 3600:
+        return cache[language]['data']
 
-    # Clear cache (for testing purposes) - You can remove this later
-    set_cache(key, None)
-
-    # Check if the result is cached
-    cache_data = get_cache(key)
-    if cache_data:
-        logging.info(f"Cache hit for language: {language}")
-        return cache_data
-
-    try:
-        logging.info(f"Fetching trending repositories for {language}...")
-        repos = fetch_trending_repos(language)
-
-        if not repos:
-            logging.warning(f"No repositories found for {language}")
-            raise HTTPException(status_code=404, detail=f"No trending repositories found for language: {language}")
-
-        # Process repos into nodes
-        nodes = [
-            {
-                "id": repo["id"],
-                "description": repo.get("description", "No description available"),
-                "stars": repo["stars"],
-                "forks": repo["forks"],
-                "language": repo["language"]
-            }
-            for repo in repos
-        ]
-
-        # Compute the edges (similarity between repositories)
-        edges = compute_edges(repos)
-
-        # Structure the result
-        result = GraphData(nodes=nodes, edges=edges)
-
-        logging.info(f"Caching result for {language}")
-        set_cache(key, result)
-
-        return result
-
-    except Exception as e:
-        logging.error(f"Error fetching data: {e}")
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    # Fetch and process data
+    repos = fetch_trending_repositories(language)
+    nodes = [RepoNode(id=repo['name'], description=repo['description'], stars=repo['stars'], forks=repo['forks'], language=language) for repo in repos]
+    edges = analyze_relationships(repos)
+    
+    result = GraphResponse(nodes=nodes, edges=edges)
+    
+    # Cache the result
+    cache[language] = {
+        "timestamp": time.time(),
+        "data": result
+    }
+    
+    return result

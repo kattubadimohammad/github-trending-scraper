@@ -9,6 +9,5 @@ RUN pip install -r requirements.txt
 COPY app /app/app
 
 WORKDIR /app
-ENV PATH="/usr/local/bin:$PATH"  # Explicitly set the PATH
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]
 # Add an empty line here to force a change
